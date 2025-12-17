@@ -8,6 +8,8 @@ name: Docker
 on:
   push:
     branches: ["master"]
+    # Publish semver tags as releases.
+    tags: ["*.*.*"]
   pull_request:
     branches: ["master"]
 
@@ -56,6 +58,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -63,3 +71,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
