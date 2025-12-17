@@ -72,16 +72,15 @@ def watch_events():
         for event in client.events(decode=True):
             if event['Type'] == 'container':
                 # TODO: make it configurable which states to not export
-                if "status" not in event or event["status"].startswith(
-                    ("exec_start", "exec_create", "exec_detach")
-                ):
+                action = event.get("Action") or event.get("status")
+                if action.startswith(("exec_start", "exec_create", "exec_detach")):
                     # ignore exec_start, exec_create and exec_detach, these dont seem helpful
                     continue
 
                 attributes = event['Actor']['Attributes']
                 EVENTS.labels(
                     **{
-                        'status': event['status'].strip(),
+                        'status': action.strip(),
                         'docker_hostname': DOCKER_HOSTNAME,
                         'image': event.get('from', ''),
                         'container_id': event.get('Actor', {}).get('ID', ''),
